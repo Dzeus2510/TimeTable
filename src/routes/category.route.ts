@@ -8,7 +8,7 @@ export const CategoryRoute = [
         action: "all"
     },{
         method: "get",
-        route: "/category/:id",
+        route: "/category/:input",
         controller: CategoryController,
         action: "one"
     },{

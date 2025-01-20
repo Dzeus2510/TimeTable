@@ -4,7 +4,9 @@ import { Category } from "../models/category.model";
 
 export class CategoryController {
     private categoryRespository = AppDataSource.getRepository(Category)
-    async all(Response, Request, NextFunction){
+
+    //return all categories
+    async getAll(Response, Request, NextFunction){
         const categoryList = this.categoryRespository.find()
         if (categoryList == null){
             return "There are no Category"
@@ -12,7 +14,8 @@ export class CategoryController {
         return categoryList
     }
 
-    async one(Request, Response, NextFunction){
+    //return one category by name or id
+    async getOne(Request, Response, NextFunction){
         if(!Request.params.input){
             return "Input sth"
         }
@@ -35,7 +38,8 @@ export class CategoryController {
         return category
     }
 
-    async save(Request, Response, NextFunction){
+    //create a new category
+    async create(Request, Response, NextFunction){
         const { categoryName } = Request.body
 
         const category = Object.assign(new Category, {categoryName})
@@ -43,6 +47,7 @@ export class CategoryController {
         return this.categoryRespository.save(category)
     }
 
+    //update a category
     async update(Request, Response, NextFunction){
         const { categoryName } = Request.body
 
@@ -54,5 +59,17 @@ export class CategoryController {
             return "Category not Found"
         
         return this.categoryRespository.update(categoryToUpdate, { categoryName })
+    }
+
+    //delete a category
+    async delete(Request, Response, NextFunction){
+        let objUid = new ObjectId(Request.params.id)
+        
+        let categoryToDelete = await this.categoryRespository.findOneBy({ _id: objUid })
+        
+        if(!categoryToDelete)
+            return "Category not Found"
+        
+        return this.categoryRespository.delete(categoryToDelete)
     }
 }
