@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
-import { ObjectId } from "mongodb";
 import { AppDataSource } from "./data-source";
-import { Category } from "./entities/Category";
+import { Category } from "./models/category.model";
 
 dotenv.config();
 
@@ -30,17 +29,19 @@ AppDataSource.initialize()
         const allCategories = await AppDataSource.getRepository(Category).find();
         console.log(allCategories);
 
-        console.log("Get One by Name");
-        const categoryName = "testAdd3";
+        /*console.log("Get One by Name");
+        const categoryName = "testUpdate";
         const foundNamedCategory = await AppDataSource.getRepository(Category).findOneBy({ categoryName });
         console.log("Found it by name: ", foundNamedCategory);
 
-        console.log(foundNamedCategory.categoryId);
-
         console.log("Get One");
-        let categoryId = foundNamedCategory.categoryId;
-        console.log("Category ID", categoryId);
-        const foundCategory = await AppDataSource.getRepository(Category).findOneBy({ categoryId: new ObjectId("678da78b33d10084b927fd44") });
+        let id = foundNamedCategory._id;
+        const foundCategory = await AppDataSource.getRepository(Category).findOneBy({ _id: id });
         console.log("Found it", foundCategory);
+
+        console.log("Update");
+        const newName = "testUpdate2.0";
+        const updatedCategory = await AppDataSource.getRepository(Category).update(foundCategory, { categoryName: newName });
+        console.log(allCategories)*/
     })
     .catch((error) => console.error("Error during Data Source initialization:", error));

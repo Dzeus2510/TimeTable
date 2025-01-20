@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb";
 import { Column, Entity, JoinColumn, ManyToOne, ObjectIdColumn } from "typeorm";
-import { Category } from "./Category";
+import { Category } from "./category.model";
 
 @Entity()
 export class Event{
     @ObjectIdColumn()
-    eventId: ObjectId
+    _id: ObjectId
 
     @Column()
     eventTitle: string
@@ -25,7 +25,7 @@ export class Event{
     @Column('time')
     endTime: Date
 
-    @ManyToOne(() => Category, (category) => category.categoryId)
+    @ManyToOne(() => Category, (category) => category._id)
     @JoinColumn({ name: 'categoryId' })
     category: Category
 }

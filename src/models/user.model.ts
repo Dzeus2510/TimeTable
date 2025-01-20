@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb"
 import { Column, Entity, ObjectIdColumn, OneToMany } from "typeorm"
-import { Task } from "./Task"
+import { Task } from "./task.model"
 
 @Entity()
 export class User {
     @ObjectIdColumn()
-    userId: ObjectId
+    _id: ObjectId
 
     @Column()
     name: string

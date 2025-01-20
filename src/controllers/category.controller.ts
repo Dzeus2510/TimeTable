@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { AppDataSource } from "../data-source";
-import { Category } from "../entities/Category";
+import { Category } from "../models/category.model";
 
 export class CategoryController {
     private categoryRespository = AppDataSource.getRepository(Category)
@@ -28,7 +28,7 @@ export class CategoryController {
 
         let objUid = new ObjectId(Request.params.input)
 
-        const category = await this.categoryRespository.findOne({ where: { categoryId: objUid} })
+        const category = await this.categoryRespository.findOne({ where: { _id: objUid} })
         if (!category)
             return "No Category Found"
 
@@ -41,5 +41,18 @@ export class CategoryController {
         const category = Object.assign(new Category, {categoryName})
 
         return this.categoryRespository.save(category)
+    }
+
+    async update(Request, Response, NextFunction){
+        const { categoryName } = Request.body
+
+        let objUid = new ObjectId(Request.params.id)
+        
+        let categoryToUpdate = await this.categoryRespository.findOneBy({ _id: objUid })
+        
+        if(!categoryToUpdate)
+            return "Category not Found"
+        
+        return this.categoryRespository.update(categoryToUpdate, { categoryName })
     }
 }
