@@ -1,75 +1,34 @@
-import { ObjectId } from "mongodb";
 import { AppDataSource } from "../data-source";
 import { Category } from "../models/category.model";
+import { CategoryService } from "../services/category.service";
 
 export class CategoryController {
+    constructor(private categoryService: CategoryService) {}
     private categoryRespository = AppDataSource.getRepository(Category)
 
     //return all categories
     async getAll(Response, Request, NextFunction){
-        const categoryList = this.categoryRespository.find()
-        if (categoryList == null){
-            return "There are no Category"
-        }
-        return categoryList
+        return this.categoryService.getAll()
     }
 
     //return one category by name or id
     async getOne(Request, Response, NextFunction){
-        if(!Request.params.input){
-            return "Input sth"
-        }
-
-        if(!ObjectId.isValid(Request.params.input)){
-            const name = Request.params.input
-            const category = await this.categoryRespository.find({
-                where: { categoryName: name}})
-            if (!category)
-                return "No Category Found"
-        return category
-        }
-
-        let objUid = new ObjectId(Request.params.input)
-
-        const category = await this.categoryRespository.findOne({ where: { _id: objUid} })
-        if (!category)
-            return "No Category Found"
-
-        return category
+        return this.categoryService.getOneById(Request.params.input)
     }
 
     //create a new category
     async create(Request, Response, NextFunction){
-        const { categoryName } = Request.body
-
-        const category = Object.assign(new Category, {categoryName})
-
-        return this.categoryRespository.save(category)
+        Promise.resolve(this.categoryService.create(Request.body))
     }
 
     //update a category
     async update(Request, Response, NextFunction){
         const { categoryName } = Request.body
-
-        let objUid = new ObjectId(Request.params.id)
-        
-        let categoryToUpdate = await this.categoryRespository.findOneBy({ _id: objUid })
-        
-        if(!categoryToUpdate)
-            return "Category not Found"
-        
-        return this.categoryRespository.update(categoryToUpdate, { categoryName })
+        Promise.resolve(this.categoryService.update(Request.params.id, categoryName))
     }
 
     //delete a category
     async delete(Request, Response, NextFunction){
-        let objUid = new ObjectId(Request.params.id)
-        
-        let categoryToDelete = await this.categoryRespository.findOneBy({ _id: objUid })
-        
-        if(!categoryToDelete)
-            return "Category not Found"
-        
-        return this.categoryRespository.delete(categoryToDelete)
+        Promise.resolve(this.categoryService.delete(Request.params.id))
     }
 }
