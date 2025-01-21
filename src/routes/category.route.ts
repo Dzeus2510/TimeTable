@@ -1,21 +1,21 @@
 import { CategoryController } from "../controllers/category.controller";
 
-export const CategoryRoute = [
+export const CategoryRoutes = [
     {
         method: "get",
         route: "/category",
         controller: CategoryController,
-        action: "all"
+        action: "getAll"
     },{
         method: "get",
         route: "/category/:input",
         controller: CategoryController,
-        action: "one"
+        action: "getOne"
     },{
         method: "post",
         route: "/category",
         controller: CategoryController,
-        action: "save"
+        action: "create"
     },{
         method: "put",
         route: "/category/:id",

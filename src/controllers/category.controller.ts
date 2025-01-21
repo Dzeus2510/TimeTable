@@ -1,10 +1,10 @@
-import { AppDataSource } from "../data-source";
-import { Category } from "../models/category.model";
 import { CategoryService } from "../services/category.service";
 
 export class CategoryController {
-    constructor(private categoryService: CategoryService) {}
-    private categoryRespository = AppDataSource.getRepository(Category)
+    private categoryService: CategoryService
+    constructor() {
+        this.categoryService = new CategoryService();
+    }
 
     //return all categories
     async getAll(Response, Request, NextFunction){
