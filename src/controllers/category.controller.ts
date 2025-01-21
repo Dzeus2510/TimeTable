@@ -18,17 +18,21 @@ export class CategoryController {
 
     //create a new category
     async create(Request, Response, NextFunction){
-        Promise.resolve(this.categoryService.create(Request.body))
+        const { categoryName } = Request.body
+        Promise.resolve(this.categoryService.create(categoryName))
+        return "Category Created"
     }
 
     //update a category
     async update(Request, Response, NextFunction){
         const { categoryName } = Request.body
         Promise.resolve(this.categoryService.update(Request.params.id, categoryName))
+        return "Category Updated"
     }
 
     //delete a category
     async delete(Request, Response, NextFunction){
         Promise.resolve(this.categoryService.delete(Request.params.id))
+        return "Category Deleted"
     }
 }
