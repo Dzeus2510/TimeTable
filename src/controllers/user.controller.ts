@@ -13,7 +13,7 @@ export class UserController{
 
     //return one user by id
     async getOne(Request, Response, NextFunction){
-        return this.userService.getOne(Request.params.input)
+        return this.userService.getOne(Request.params.id)
     }
 
     //register a new user
