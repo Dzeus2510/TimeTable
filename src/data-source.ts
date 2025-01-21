@@ -16,7 +16,7 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   logging: false,
   migrationsRun: true,
-  entities: [Category, Event, Task, User], // Explicitly list entities
+  entities: [Category, Event, Task, User],
   migrations: [],
   useUnifiedTopology: true,
 });
