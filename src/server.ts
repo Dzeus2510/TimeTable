@@ -20,6 +20,5 @@ app.listen(port, () => console.log(
 ))
 
 AppDataSource.initialize()
-    .then(async () => {
-    })
+    .then(async () => {})
     .catch((error) => console.error("Error during Data Source initialization:", error));

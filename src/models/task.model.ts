@@ -14,7 +14,7 @@ export class Task{
     description: string
 
     @Column({ type: 'date'})
-    startDate: string
+    startDate: Date
 
     @Column({ type: 'date'})
     endDate?: Date
