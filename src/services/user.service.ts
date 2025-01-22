@@ -105,4 +105,39 @@ export class UserService {
             throw new Error(`Error logging in: ${error.message}`);
         }
     }
+
+    //update user
+    async update(id: string, name: string) {
+        try{
+            await this.invalidId(id)
+            await this.checkInput([name])
+
+            let objUid = new ObjectId(id)
+            const user = await this.userRepository.findOne({ where: { _id: objUid } })
+            await this.findUser(user)
+
+            return this.userRepository.update({_id: objUid}, { name })
+        } catch (error) {
+            throw new Error(`Error updating user: ${error.message}`);
+        }
+    }
+
+    //change password
+    async changePassword(id: string, oldPassword: string, newPassword: string) {
+        try{
+            await this.invalidId(id)
+            await this.checkInput([oldPassword, newPassword])
+
+            let objUid = new ObjectId(id)
+            const user = await this.userRepository.findOne({ where: { _id: objUid } })
+            await this.findUser(user)
+
+            await this.checkPassword(oldPassword, user.password)
+            const password = await this.hashPassword(newPassword)
+
+            return this.userRepository.update({_id: objUid}, { password })
+        } catch (error) {
+            throw new Error(`Error changing password: ${error.message}`);
+        }
+    }
 }

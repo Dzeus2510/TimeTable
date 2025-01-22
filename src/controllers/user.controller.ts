@@ -27,4 +27,18 @@ export class UserController{
         const { email, password } = Request.body
         return Promise.resolve(this.userService.login(email, password))
     }
+
+    //update
+    async update(Request, Response, NextFunction){
+        const id = Request.params.id
+        const { name } = Request.body
+        return Promise.resolve(this.userService.update(id, name))
+    }
+
+    //change password
+    async changePassword(Request, Response, NextFunction){
+        const id = Request.params.id
+        const { oldPassword , newPassword } = Request.body
+        return Promise.resolve(this.userService.changePassword(id, oldPassword, newPassword))
+    }
 }

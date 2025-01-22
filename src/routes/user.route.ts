@@ -22,9 +22,14 @@ export const UserRoutes = [
         controller: UserController,
         action: "login"
     },{
-        method: "delete",
+        method: "put",
+        route: "/user/password/:id",
+        controller: UserController,
+        action: "changePassword"
+    },{
+        method: "put",
         route: "/user/:id",
         controller: UserController,
-        action: "delete"
+        action: "update"
     }
 ]
