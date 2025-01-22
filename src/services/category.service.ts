@@ -5,14 +5,32 @@ import { Category } from "../models/category.model";
 export class CategoryService {
     private categoryRepository = AppDataSource.getRepository(Category)
 
+    private async checkCategoryExist(category): Promise<void> {
+        if (!category) {
+            throw new Error("Category does not exists")
+        }
+        return category
+    }
+
+    private async checkInput(inputs: string[]): Promise<void> {
+        for (let input of inputs) {
+            if (!input) {
+                throw new Error("Please input all fields")
+            }
+        }
+    }
+
+    private async invalidId(id: string): Promise<void> {
+        if (!ObjectId.isValid(id)) {
+            throw new Error("Please input valid ID")
+        }
+    }
+
     //return all categories
     async getAll() {
         try {
             const categoryList = this.categoryRepository.find()
-            //return if no category found
-            if (categoryList == null) {
-                return "There are no Category"
-            }
+            await this.checkCategoryExist(categoryList)
             return categoryList
         } catch (error) {
             return error
@@ -22,22 +40,12 @@ export class CategoryService {
     //return one category by id
     async getOneById(id: string) {
         try {
-            //check if input is empty
-            if (!id) {
-                return "Input something"
-            }
-            //check if input is a valid ObjectId
-            if (!ObjectId.isValid(id)) {
-                return "Please input a valid ID"
-            }
-            //change input to ObjectId
+            await this.invalidId(id)
+
             let objUid = new ObjectId(id)
-            //find category by id
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
-            //return if no category found
-            if (!category)
-                return "No Category Found"
-            return category
+
+            await this.checkCategoryExist(category)
         } catch (error) {
             return error
         }
@@ -46,16 +54,9 @@ export class CategoryService {
     //return one category by name
     async getOneByName(name: string) {
         try {
-            //check if input is empty
-            if (!name) {
-                return "Input something"
-            }
-            //find category by name
+            await this.checkInput([name])
             const category = await this.categoryRepository.findOne({ where: { categoryName: name } })
-            //return if no category found
-            if (!category)
-                return "No Category Found"
-            return category
+            await this.checkCategoryExist(category)
         } catch (error) {
             return error
         }
@@ -64,11 +65,8 @@ export class CategoryService {
     //create a new category
     async create(categoryName: string) {
         try {
-            //check if all fields are inputted
-            if (!categoryName) {
-                return "Please input all fields"
-            }
-            //create new category
+            await this.checkInput([categoryName])
+
             const category = Object.assign(new Category, { categoryName })
             return this.categoryRepository.save(category)
         } catch (error) {
@@ -79,26 +77,13 @@ export class CategoryService {
     //update a category
     async update(id: string, categoryName: string) {
         try {
-            //check if all fields are inputted
-            if (!categoryName) {
-                return "Please input all fields"
-            }
-            //check if input is empty
-            if (!id) {
-                return "Input something"
-            }
-            //check if input is a valid ObjectId
-            if (!ObjectId.isValid(id)) {
-                return "Invalid ID"
-            }
-            //change input to ObjectId
+            await this.checkInput([id, categoryName])
+            await this.invalidId(id)
+
             let objUid = new ObjectId(id)
-            //find category by id
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
-            //return if no category found
-            if (!category)
-                return "No Category Found"
-            //update category
+            await this.checkCategoryExist(category)
+
             return this.categoryRepository.update(category, { categoryName })
         } catch (error) {
             return error
@@ -108,22 +93,12 @@ export class CategoryService {
     //delete a category
     async delete(id: string) {
         try {
-            //check if input is empty
-            if (!id) {
-                return "Input something"
-            }
-            //check if input is a valid ObjectId
-            if (!ObjectId.isValid(id)) {
-                return "Invalid ID"
-            }
-            //change input to ObjectId
+            await this.invalidId(id)
+            
             let objUid = new ObjectId(id)
-            //find category by id
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
-            //return if no category found
-            if (!category)
-                return "No Category Found"
-            //delete category
+            await this.checkCategoryExist(category)
+
             return this.categoryRepository.delete(category)
         } catch (error) {
             return error

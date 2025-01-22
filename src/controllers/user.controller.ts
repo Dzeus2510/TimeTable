@@ -22,6 +22,7 @@ export class UserController{
         return Promise.resolve(this.userService.register(name, email, password))
     }
 
+    //login
     async login(Request, Response, NextFunction){
         const { email, password } = Request.body
         return Promise.resolve(this.userService.login(email, password))
