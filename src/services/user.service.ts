@@ -1,4 +1,5 @@
 import * as bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { ObjectId } from 'mongodb';
 import { AppDataSource } from '../data-source';
 import { User } from '../models/user.model';
@@ -50,6 +51,16 @@ export class UserService {
         }
     }
 
+    private async generateToken(data): Promise<string> {
+        try{
+            let jwtSecretKey = process.env.JWT_SECRET_KEY;
+            const token = jwt.sign(data, jwtSecretKey)
+            return token
+        }  catch (error) {
+            throw new Error(`Error generating token: ${error.message}`);
+        }
+    }
+
     //return all users
     async getAll() {
         try{
@@ -67,7 +78,6 @@ export class UserService {
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-    
             return await this.findUser(user)
         } catch (error) {
             throw new Error(`Error getting user: ${error.message}`);
@@ -100,7 +110,9 @@ export class UserService {
             await this.findUser(user)
 
             await this.checkPassword(password, user.password)
-            return user
+            const token = await this.generateToken({id: user._id, email: user.email, name: user.name})
+
+            return user + token
         } catch (error) {
             throw new Error(`Error logging in: ${error.message}`);
         }
@@ -140,4 +152,5 @@ export class UserService {
             throw new Error(`Error changing password: ${error.message}`);
         }
     }
+
 }

@@ -18,7 +18,7 @@ export const UserRoutes = [
         action: "register"
     },{
         method: "post",
-        route: "/user",
+        route: "/user/login",
         controller: UserController,
         action: "login"
     },{
@@ -31,5 +31,10 @@ export const UserRoutes = [
         route: "/user/:id",
         controller: UserController,
         action: "update"
+    },{
+        method: "delete",
+        route: "/user/logout",
+        controller: UserController,
+        action: "logout"
     }
 ]
