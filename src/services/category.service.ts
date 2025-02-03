@@ -38,7 +38,7 @@ export class CategoryService {
     }
 
     //return one category by id
-    async getOneById(id: string) {
+    async getCategory(id: string) {
         try {
             await this.invalidId(id)
 

@@ -27,22 +27,22 @@ export class UserController{
 
     private async removeToken(Request, Response): Promise<void> {
         try{
-            console.log(Request.headers.authorization)
             delete Request.headers.authorization
-            console.log(Request.headers.authorization)
         }  catch (error) {
             throw new Error(`Error removing token: ${error.message}`);
         }
     }
 
     //return all users
-    async getAll(Request, Response, NextFunction){
+    async getAllUsers(Request, Response, NextFunction){
         await this.verifyToken(Request, Response)
+        console.log("Request: ", Request.headers.verified)
         return this.userService.getAll()
     }
 
     //return one user by id
-    async getOne(Request, Response, NextFunction){
+    async getUser(Request, Response, NextFunction){
+        await this.verifyToken(Request, Response)
         return this.userService.getOne(Request.params.id)
     }
 
@@ -54,12 +54,18 @@ export class UserController{
 
     //login
     async login(Request, Response, NextFunction){
-        const { email, password } = Request.body
-        return Promise.resolve(this.userService.login(email, password))
+        try{
+            const { email, password } = Request.body
+            Promise.resolve(this.userService.login(email, password))
+            return Response.status(200).json({message: "Logged in"})
+        } catch (error) {
+            return Response.status(400).json({message: error.message})
+        }
+        
     }
 
     //update
-    async update(Request, Response, NextFunction){
+    async updateUser(Request, Response, NextFunction){
         const id = Request.params.id
         const { name } = Request.body
         return Promise.resolve(this.userService.update(id, name))
@@ -75,9 +81,7 @@ export class UserController{
     //logout
     async logout(Request, Response, NextFunction){
         try {
-            console.log("Start logging out")
             this.removeToken(Request, Response)
-            console.log(Request.headers.authorization)
             return "Logged out"
         } catch (error) {
             throw new Error(`Error logging out: ${error.message}`);
