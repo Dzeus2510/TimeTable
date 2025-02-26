@@ -5,12 +5,12 @@ export const UserRoutes = [
         method: "get",
         route: "/user",
         controller: UserController,
-        action: "getAll"
+        action: "getAllUsers"
     },{
         method: "get",
         route: "/user/:id",
         controller: UserController,
-        action: "getOne"
+        action: "getUser"
     },{
         method: "post",
         route: "/user/register",
@@ -18,7 +18,7 @@ export const UserRoutes = [
         action: "register"
     },{
         method: "post",
-        route: "/user",
+        route: "/user/login",
         controller: UserController,
         action: "login"
     },{
@@ -30,6 +30,11 @@ export const UserRoutes = [
         method: "put",
         route: "/user/:id",
         controller: UserController,
-        action: "update"
+        action: "updateUser"
+    },{
+        method: "delete",
+        route: "/user/logout",
+        controller: UserController,
+        action: "logout"
     }
 ]
