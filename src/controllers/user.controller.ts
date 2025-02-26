@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import { UserService } from "../services/user.service";
 
 export class UserController{
@@ -8,51 +7,22 @@ export class UserController{
         }
     
 
-    //verify token
-    private async verifyToken(Request, Response): Promise<void> {
-        try{
-            const token = Request.headers.authorization.split(' ')[1];
-            console.log("token: ", token)
-            if(!token) {
-                throw new Error("Access Denied")
-            }
-            let jwtSecretKey = process.env.JWT_SECRET_KEY;
-            const verified = jwt.verify(token, jwtSecretKey)
-            console.log("verified: ", verified)
-            return verified
-        }  catch (error) {
-            throw new Error(`Error verifying token: ${error.message}`);
-        }
-    }
-
-    private async removeToken(Request, Response): Promise<void> {
-        try{
-            delete Request.headers.authorization
-        }  catch (error) {
-            throw new Error(`Error removing token: ${error.message}`);
-        }
-    }
-
-    //return all users
     async getAllUsers(Request, Response, NextFunction){
-        await this.verifyToken(Request, Response)
-        console.log("Request: ", Request.headers.verified)
-        return this.userService.getAll()
+        const token = Request.headers.authorization.split(' ')[1]
+            return this.userService.getAll(token)
     }
 
-    //return one user by id
     async getUser(Request, Response, NextFunction){
-        await this.verifyToken(Request, Response)
+        const token = Request.headers.authorization.split(' ')[1];
+        await this.userService.verifyToken(token)
         return this.userService.getOne(Request.params.id)
     }
 
-    //register a new user
     async register(Request, Response, NextFunction){
         const { name, email, password } = Request.body
         return Promise.resolve(this.userService.register(name, email, password))
     }
 
-    //login
     async login(Request, Response, NextFunction){
         try{
             const { email, password } = Request.body
@@ -64,24 +34,23 @@ export class UserController{
         
     }
 
-    //update
     async updateUser(Request, Response, NextFunction){
         const id = Request.params.id
         const { name } = Request.body
         return Promise.resolve(this.userService.update(id, name))
     }
 
-    //change password
     async changePassword(Request, Response, NextFunction){
         const id = Request.params.id
         const { oldPassword , newPassword } = Request.body
         return Promise.resolve(this.userService.changePassword(id, oldPassword, newPassword))
     }
 
-    //logout
     async logout(Request, Response, NextFunction){
         try {
-            this.removeToken(Request, Response)
+            const token = Request.headers.authorization.split(' ')[1];
+            const verified = await this.userService.verifyToken(token)
+            Promise.resolve(this.userService.removeToken(verified.id))
             return "Logged out"
         } catch (error) {
             throw new Error(`Error logging out: ${error.message}`);

@@ -1,8 +1,14 @@
 import { Router } from "express";
+import { authMiddleware } from "../middleware/authMiddleware";
 import { CategoryRoutes } from "./category.route";
-import { UserRoutes } from "./user.route"; // Assuming you have a similar structure for user routes
+import { TaskRoutes } from "./task.route";
+import { UserRoutes } from "./user.route";
 
 const router = Router();
+
+router.get("/protected-route", authMiddleware, (req, res) => {
+    res.json({message: "Authenticated", userId: req.body.userId});
+});
 
 const registerRoutes = (routes) => {
     routes.forEach(route => {
@@ -20,5 +26,6 @@ const registerRoutes = (routes) => {
 
 registerRoutes(CategoryRoutes);
 registerRoutes(UserRoutes);
+registerRoutes(TaskRoutes);
 
 export default router;

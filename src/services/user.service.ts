@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { ObjectId } from 'mongodb';
 import { AppDataSource } from '../data-source';
 import { User } from '../models/user.model';
+import { redisToken } from "../server";
 
 export class UserService {
     private userRepository = AppDataSource.getMongoRepository(User)
@@ -18,20 +19,20 @@ export class UserService {
         }
     }
     
-    private async invalidId(id: string): Promise<void> {
+    private async isIdValid(id: string): Promise<void> {
         if (!ObjectId.isValid(id)) {
             throw new Error("Please input valid ID")
         }
     }
 
-    private async findUser(user): Promise<void> {
+    private async findExistUser(user): Promise<void> {
         if (user == null) {
             throw new Error("There are no User")
         }
         return user
     }
 
-    private async checkInput(inputs : string[]): Promise<void> {
+    private async checkFieldsInput(inputs : string[]): Promise<void> {
         for (let input of inputs) {
             if (!input) {
                 throw new Error("Please input all fields")
@@ -51,43 +52,74 @@ export class UserService {
         }
     }
 
+    public async verifyToken(token): Promise<any> {
+        try{
+            if(!token) {
+                throw new Error("Access Denied")
+            }
+            
+            let jwtSecretKey = process.env.JWT_SECRET_KEY;
+
+            const verified = jwt.verify(token, jwtSecretKey)
+            console.log("verified: ", verified)
+
+            const redis = await redisToken.get(verified.id, token)
+            console.log("redis: ", redis)
+
+            if (redis == null) {
+                return null
+            } else {
+                return verified
+            }
+        }  catch (error) {
+            throw new Error(`Error verifying token: ${error.message}`);
+        }
+    }
+
     private async generateToken(data): Promise<string> {
         try{
+            console.log("Got to generate token")
             let jwtSecretKey = process.env.JWT_SECRET_KEY;
             const token = jwt.sign(data, jwtSecretKey)
+            console.log("data: ", data)
+            console.log("Redis Client: ")
+            const userid = data.id.toString()
+            await redisToken.set(userid, token)
+            console.log(redisToken)
             return token
         }  catch (error) {
             throw new Error(`Error generating token: ${error.message}`);
         }
     }
 
-    //return all users
-    async getAll() {
+    async getAll(token) {
         try{
+            const verified = await this.verifyToken(token)
             const userList = this.userRepository.find()
-            return await this.findUser(userList)
+            if (verified == null) {
+                throw new Error("Access Denied")
+            }
+            return await this.findExistUser(userList)
         } catch (error) {
             throw new Error(`Error getting all users: ${error.message}`);
         }
     }
 
-    //return one user by id
     async getOne(id: string) {
         try{
-            await this.invalidId(id)
+            await this.isIdValid(id)
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            return await this.findUser(user)
+            return await this.findExistUser(user)
         } catch (error) {
             throw new Error(`Error getting user: ${error.message}`);
         }
     }
 
-    //register a new user
     async register(name : string , email : string, rawPassword : string) {
         try{
-            await this.checkInput([name, email, rawPassword])
+            await this.checkFieldsInput([name, email, rawPassword])
 
             const userExisted = await this.userRepository.findOne({ where: { email } })
             await this.checkUserExist(userExisted)
@@ -101,16 +133,16 @@ export class UserService {
         }
     }
 
-    //login
     async login(email: string, password: string) {
         try{
-            await this.checkInput([email, password])
+            await this.checkFieldsInput([email, password])
 
             const user = await this.userRepository.findOne({ where: { email } })
-            await this.findUser(user)
+            await this.findExistUser(user)
 
             await this.checkPassword(password, user.password)
             const token = await this.generateToken({id: user._id, email: user.email, name: user.name})
+            console.log("Token: ", token)
 
             return user + token
         } catch (error) {
@@ -118,15 +150,14 @@ export class UserService {
         }
     }
 
-    //update user
     async update(id: string, name: string) {
         try{
-            await this.invalidId(id)
-            await this.checkInput([name])
+            await this.isIdValid(id)
+            await this.checkFieldsInput([name])
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            await this.findUser(user)
+            await this.findExistUser(user)
 
             return this.userRepository.update({_id: objUid}, { name })
         } catch (error) {
@@ -134,15 +165,14 @@ export class UserService {
         }
     }
 
-    //change password
     async changePassword(id: string, oldPassword: string, newPassword: string) {
         try{
-            await this.invalidId(id)
-            await this.checkInput([oldPassword, newPassword])
+            await this.isIdValid(id)
+            await this.checkFieldsInput([oldPassword, newPassword])
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            await this.findUser(user)
+            await this.findExistUser(user)
 
             await this.checkPassword(oldPassword, user.password)
             const password = await this.hashPassword(newPassword)
@@ -150,6 +180,14 @@ export class UserService {
             return this.userRepository.update({_id: objUid}, { password })
         } catch (error) {
             throw new Error(`Error changing password: ${error.message}`);
+        }
+    }
+
+    async removeToken(userId: string): Promise<void> {
+        try{
+            await redisToken.del(userId);
+        }  catch (error) {
+            throw new Error(`Error removing token: ${error.message}`);
         }
     }
 
