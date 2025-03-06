@@ -1,34 +1,19 @@
 import { ObjectId } from 'mongodb';
 import { AppDataSource } from '../data-source';
 import { Task } from '../models/task.model';
+import { Validation } from './validation';
+
 export class TaskService{
     private taskRepository = AppDataSource.getMongoRepository(Task)
-
-    private async invalidId(id: string): Promise<void> {
-        if (!ObjectId.isValid(id)) {
-            throw new Error("Please input valid ID")
-        }
-    }
-
-    private async findTask(task): Promise<void> {
-        if (task == null) {
-            throw new Error("There are no Task")
-        }
-        return task
-    }
-
-    private async checkInput(inputs : any[]): Promise<void> {
-        for (let input of inputs) {
-            if (!input) {
-                throw new Error("Please input all fields")
-            }
-        }
+    private validation : Validation
+    constructor() {
+        this.validation = new Validation();
     }
 
     async getAllTask() {
-        try{
+        try {
             const taskList = this.taskRepository.find()
-            return await this.findTask(taskList)
+            return await this.validation.findItem(taskList)
         } catch (error) {
             throw new Error(`Error getting all tasks: ${error.message}`);
         }
@@ -36,12 +21,12 @@ export class TaskService{
 
     async getTask(id: string) {
         try {
-            await this.invalidId(id)
+            await this.validation.invalidId(id)
 
             let objUid = new ObjectId(id)
             const task = await this.taskRepository.findOne({ where: { _id: objUid } })
     
-            return await this.findTask(task)
+            return await this.validation.findItem(task)
         } catch (error) {
             throw new Error(`Error getting task: ${error.message}`);
         }
@@ -57,7 +42,7 @@ export class TaskService{
 
     async saveTask(task: Task) {
         try {
-            await this.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
+            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
 
             const taskList = await this.taskRepository.find(e => e.startDate == task.startDate)
             for (let existTask of taskList) {
@@ -72,8 +57,8 @@ export class TaskService{
 
     async updateTask(id: string, task: Task) {
         try {
-            await this.invalidId(id)
-            await this.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
+            await this.validation.invalidId(id)
+            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
 
             let objUid = new ObjectId(id)
             const updatedTask = await this.taskRepository.update(objUid, task)
@@ -85,7 +70,7 @@ export class TaskService{
 
     async removeTask(id: string) {
         try {
-            await this.invalidId(id)
+            await this.validation.invalidId(id)
 
             let objUid = new ObjectId(id)
             const deletedTask = await this.taskRepository.delete(objUid)

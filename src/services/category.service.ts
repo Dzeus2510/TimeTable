@@ -1,107 +1,84 @@
 import { ObjectId } from "mongodb";
 import { AppDataSource } from "../data-source";
 import { Category } from "../models/category.model";
+import { Validation } from "./validation";
 
 export class CategoryService {
     private categoryRepository = AppDataSource.getRepository(Category)
-
-    private async checkCategoryExist(category): Promise<void> {
-        if (!category) {
-            throw new Error("Category does not exists")
+    private validation : Validation
+        constructor() {
+            this.validation = new Validation();
         }
-        return category
-    }
 
-    private async checkInput(inputs: string[]): Promise<void> {
-        for (let input of inputs) {
-            if (!input) {
-                throw new Error("Please input all fields")
-            }
-        }
-    }
-
-    private async invalidId(id: string): Promise<void> {
-        if (!ObjectId.isValid(id)) {
-            throw new Error("Please input valid ID")
-        }
-    }
-
-    //return all categories
-    async getAll() {
+    async getAllCategory() {
         try {
             const categoryList = this.categoryRepository.find()
-            await this.checkCategoryExist(categoryList)
-            return categoryList
+            return await this.validation.findItem(categoryList)
         } catch (error) {
-            return error
+            throw new Error(`Error getting all category: ${error.message}`);
         }
     }
 
-    //return one category by id
     async getCategory(id: string) {
         try {
-            await this.invalidId(id)
+            await this.validation.invalidId(id)
 
             let objUid = new ObjectId(id)
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
 
-            await this.checkCategoryExist(category)
+            await this.validation.findItem(category)
         } catch (error) {
-            return error
+            throw new Error(`Error getting category: ${error.message}`);
         }
     }
 
-    //return one category by name
     async getOneByName(name: string) {
         try {
-            await this.checkInput([name])
+            await this.validation.checkInput([name])
             const category = await this.categoryRepository.findOne({ where: { categoryName: name } })
-            await this.checkCategoryExist(category)
+            await this.validation.findItem(category)
         } catch (error) {
-            return error
+            throw new Error(`Error getting category: ${error.message}`);
         }
     }
 
-    //create a new category
     async create(categoryName: string) {
         try {
-            await this.checkInput([categoryName])
+            await this.validation.checkInput([categoryName])
 
             const category = Object.assign(new Category, { categoryName })
             return this.categoryRepository.save(category)
         } catch (error) {
-            return error
+            throw new Error(`Error creating category: ${error.message}`);
         }
     }
 
-    //update a category
     async update(id: string, categoryName: string) {
         try {
-            await this.checkInput([id, categoryName])
-            await this.invalidId(id)
+            await this.validation.checkInput([id, categoryName])
+            await this.validation.invalidId(id)
 
             let objUid = new ObjectId(id)
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
-            await this.checkCategoryExist(category)
+            await this.validation.findItem(category)
 
             return this.categoryRepository.update(category, { categoryName })
         } catch (error) {
-            return error
+            throw new Error(`Error updating category: ${error.message}`);
         }
     }
 
-    //delete a category
     async delete(id: string) {
         try {
-            await this.invalidId(id)
+            await this.validation.invalidId(id)
             
             let objUid = new ObjectId(id)
             const category = await this.categoryRepository.findOne({ where: { _id: objUid } })
-            await this.checkCategoryExist(category)
+            await this.validation.findItem(category)
 
             return this.categoryRepository.delete(category)
         } catch (error) {
-            return error
+            throw new Error(`Error deleting category: ${error.message}`);
         }
     }
 }
