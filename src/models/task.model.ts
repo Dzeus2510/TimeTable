@@ -16,9 +16,6 @@ export class Task{
     @Column({ type: 'date'})
     startDate: Date
 
-    @Column({ type: 'date'})
-    endDate?: Date
-
     @Column('time')
     startTime: Date
 
