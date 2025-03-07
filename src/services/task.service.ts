@@ -59,6 +59,11 @@ export class TaskService{
         try {
             await this.validation.invalidId(id)
             await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
+            
+            const taskList = await this.taskRepository.find(e => e.startDate == task.startDate && e._id != id)
+            for (let existTask of taskList) {
+                await this.validateTask(existTask, task)
+            }
 
             let objUid = new ObjectId(id)
             const updatedTask = await this.taskRepository.update(objUid, task)
