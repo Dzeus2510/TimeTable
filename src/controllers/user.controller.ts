@@ -9,7 +9,7 @@ export class UserController{
 
     async getAllUsers(Request, Response, NextFunction){
         const token = Request.headers.authorization.split(' ')[1]
-            return this.userService.getAll(token)
+        return this.userService.getAll(token)
     }
 
     async getUser(Request, Response, NextFunction){

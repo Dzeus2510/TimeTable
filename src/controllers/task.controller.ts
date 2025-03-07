@@ -25,4 +25,8 @@ export class TaskController{
     async removeTask(Request, Response, NextFunction) {
         return this.taskService.removeTask(Request.params.id)
     }
+
+    async checkDone(Request, Response, NextFunction){
+        return this.taskService.checkDone(Request.params.id)
+    }
 }

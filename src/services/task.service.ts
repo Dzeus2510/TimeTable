@@ -76,12 +76,30 @@ export class TaskService{
     async removeTask(id: string) {
         try {
             await this.validation.invalidId(id)
+            const objUid = new ObjectId(id)
+            const task = await this.taskRepository.findOne({ where: { _id: objUid } })
+            await this.validation.findItem(task)
 
-            let objUid = new ObjectId(id)
             const deletedTask = await this.taskRepository.delete(objUid)
             return deletedTask
         } catch (error) {
             throw new Error(`Error deleting task: ${error.message}`);
+        }
+    }
+
+    async checkDone(id: string){
+        try{
+            await this.validation.invalidId(id)
+            const objUid = new ObjectId(id)
+            const task = await this.taskRepository.findOne({ where: { _id: objUid } })
+            await this.validation.findItem(task)
+
+            task.isDone = true
+            task.endTime = new Date()
+            return await this.taskRepository.update(objUid, task)
+
+        } catch (error) {
+            throw new Error(`Error checking done task: ${error.message}`);
         }
     }
 }

@@ -17,7 +17,7 @@ export const TaskRoutes = [
         controller: TaskController,
         action: "saveTask"
     },{
-        method: "put",
+        method: "post",
         route: "/task/:id",
         controller: TaskController,
         action: "updateTask"
@@ -26,5 +26,10 @@ export const TaskRoutes = [
         route: "/task/:id",
         controller: TaskController,
         action: "removeTask"
+    },{
+        method: "put",
+        route: "/task/:id",
+        controller: TaskController,
+        action: "checkDone"
     }
 ]
