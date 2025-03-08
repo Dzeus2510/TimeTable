@@ -62,12 +62,15 @@ export class TaskService{
             await this.validation.invalidId(id)
             await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.endTime, task.isRepeat, task.notifying])
             
-            const taskList = await this.taskRepository.find(e => e.startDate == task.startDate && e._id != id)
+            const objUid = new ObjectId(id)
+            console.log("Id: " + id)
+            console.log("objUID: " +objUid)
+            const taskList = await this.taskRepository.find({ where: {startDate: task.startDate, _id: {$ne: objUid}}})
             for (let existTask of taskList) {
+                console.log(existTask)
                 await this.validateTask(existTask, task)
             }
 
-            let objUid = new ObjectId(id)
             const updatedTask = await this.taskRepository.update(objUid, task)
             return updatedTask
         } catch (error) {
@@ -104,6 +107,4 @@ export class TaskService{
             throw new Error(`Error checking done task: ${error.message}`);
         }
     }
-
-    //TODO: check validate task (no endTime)
 }
