@@ -100,7 +100,7 @@ export class TaskService{
             await this.validation.findItem(task)
 
             task.isDone = true
-            task.endTime = new Date()
+            task.realEndTime = new Date()
             return await this.taskRepository.update(objUid, task)
 
         } catch (error) {
