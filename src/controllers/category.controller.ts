@@ -8,7 +8,7 @@ export class CategoryController {
 
     //return all categories
     async getAllCategory(Response, Request, NextFunction){
-        return this.categoryService.getAll()
+        return this.categoryService.getAllCategory()
     }
 
     //return one category by name or id

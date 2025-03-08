@@ -16,20 +16,20 @@ export class Task{
     @Column({ type: 'date'})
     startDate: Date
 
-    @Column({ type: 'date'})
-    endDate?: Date
-
     @Column('time')
     startTime: Date
 
     @Column('time')
-    endTime?: Date
+    endTime: Date
+
+    @Column('time')
+    realEndTime?: Date
 
     @Column()
     isRepeat: boolean
 
     @Column()
-    repeatDate: string[]
+    repeatDate?: string[]
 
     @Column()
     isDone?: boolean

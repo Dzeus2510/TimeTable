@@ -4,10 +4,15 @@ import { ObjectId } from 'mongodb';
 import { AppDataSource } from '../data-source';
 import { User } from '../models/user.model';
 import { redisToken } from "../server";
+import { Validation } from "./validation";
 
 export class UserService {
     private userRepository = AppDataSource.getMongoRepository(User)
     private saltRounds = 10
+    private validation: Validation
+    constructor() {
+        this.validation = new Validation();
+    }
 
     private async hashPassword(password: string): Promise<string> {
         try {
@@ -16,27 +21,6 @@ export class UserService {
             return hashedPassword;
         } catch (error){
             throw new Error(`Error hashing password: ${error.message}`);
-        }
-    }
-    
-    private async isIdValid(id: string): Promise<void> {
-        if (!ObjectId.isValid(id)) {
-            throw new Error("Please input valid ID")
-        }
-    }
-
-    private async findExistUser(user): Promise<void> {
-        if (user == null) {
-            throw new Error("There are no User")
-        }
-        return user
-    }
-
-    private async checkFieldsInput(inputs : string[]): Promise<void> {
-        for (let input of inputs) {
-            if (!input) {
-                throw new Error("Please input all fields")
-            }
         }
     }
 
@@ -57,14 +41,9 @@ export class UserService {
             if(!token) {
                 throw new Error("Access Denied")
             }
-            
             let jwtSecretKey = process.env.JWT_SECRET_KEY;
-
             const verified = jwt.verify(token, jwtSecretKey)
-            console.log("verified: ", verified)
-
             const redis = await redisToken.get(verified.id, token)
-            console.log("redis: ", redis)
 
             if (redis == null) {
                 return null
@@ -78,14 +57,11 @@ export class UserService {
 
     private async generateToken(data): Promise<string> {
         try{
-            console.log("Got to generate token")
             let jwtSecretKey = process.env.JWT_SECRET_KEY;
             const token = jwt.sign(data, jwtSecretKey)
-            console.log("data: ", data)
-            console.log("Redis Client: ")
             const userid = data.id.toString()
+
             await redisToken.set(userid, token)
-            console.log(redisToken)
             return token
         }  catch (error) {
             throw new Error(`Error generating token: ${error.message}`);
@@ -99,7 +75,7 @@ export class UserService {
             if (verified == null) {
                 throw new Error("Access Denied")
             }
-            return await this.findExistUser(userList)
+            return await this.validation.findItem(userList)
         } catch (error) {
             throw new Error(`Error getting all users: ${error.message}`);
         }
@@ -107,11 +83,11 @@ export class UserService {
 
     async getOne(id: string) {
         try{
-            await this.isIdValid(id)
+            await this.validation.invalidId(id)
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            return await this.findExistUser(user)
+            return await this.validation.findItem(user)
         } catch (error) {
             throw new Error(`Error getting user: ${error.message}`);
         }
@@ -119,7 +95,7 @@ export class UserService {
 
     async register(name : string , email : string, rawPassword : string) {
         try{
-            await this.checkFieldsInput([name, email, rawPassword])
+            await this.validation.checkInput([name, email, rawPassword])
 
             const userExisted = await this.userRepository.findOne({ where: { email } })
             await this.checkUserExist(userExisted)
@@ -135,10 +111,10 @@ export class UserService {
 
     async login(email: string, password: string) {
         try{
-            await this.checkFieldsInput([email, password])
+            await this.validation.checkInput([email, password])
 
             const user = await this.userRepository.findOne({ where: { email } })
-            await this.findExistUser(user)
+            await this.validation.findItem(user)
 
             await this.checkPassword(password, user.password)
             const token = await this.generateToken({id: user._id, email: user.email, name: user.name})
@@ -152,12 +128,12 @@ export class UserService {
 
     async update(id: string, name: string) {
         try{
-            await this.isIdValid(id)
-            await this.checkFieldsInput([name])
+            await this.validation.invalidId(id)
+            await this.validation.checkInput([name])
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            await this.findExistUser(user)
+            await this.validation.findItem(user)
 
             return this.userRepository.update({_id: objUid}, { name })
         } catch (error) {
@@ -167,12 +143,12 @@ export class UserService {
 
     async changePassword(id: string, oldPassword: string, newPassword: string) {
         try{
-            await this.isIdValid(id)
-            await this.checkFieldsInput([oldPassword, newPassword])
+            await this.validation.invalidId(id)
+            await this.validation.checkInput([oldPassword, newPassword])
 
             let objUid = new ObjectId(id)
             const user = await this.userRepository.findOne({ where: { _id: objUid } })
-            await this.findExistUser(user)
+            await this.validation.findItem(user)
 
             await this.checkPassword(oldPassword, user.password)
             const password = await this.hashPassword(newPassword)

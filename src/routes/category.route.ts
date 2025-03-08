@@ -5,26 +5,26 @@ export const CategoryRoutes = [
         method: "get",
         route: "/category",
         controller: CategoryController,
-        action: "getAll"
+        action: "getAllCategory"
     },{
         method: "get",
         route: "/category/:input",
         controller: CategoryController,
-        action: "getOne"
+        action: "getCategory"
     },{
         method: "post",
         route: "/category",
         controller: CategoryController,
-        action: "create"
+        action: "createCategory"
     },{
         method: "put",
         route: "/category/:id",
         controller: CategoryController,
-        action: "update"
+        action: "updateCategory"
     },{
         method: "delete",
         route: "/category/:id",
         controller: CategoryController,
-        action: "delete"
+        action: "deleteCategory"
     }
 ]
