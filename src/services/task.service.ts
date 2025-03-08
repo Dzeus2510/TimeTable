@@ -38,13 +38,15 @@ export class TaskService{
             newTask.startTime <= existTask.startTime && existTask.endTime <= newTask.endTime) {
             throw new Error("There's already a task: " + existTask.title + " on " + existTask.startTime + " - " + existTask.endTime)
         }
+        if ( newTask.startTime >= newTask.endTime) {
+            throw new Error("Invalid time")
+        }
     }
 
     async saveTask(task: Task) {
         try {
-            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
-
-            const taskList = await this.taskRepository.find(e => e.startDate == task.startDate)
+            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.endTime, task.isRepeat, task.notifying])
+            const taskList = await this.taskRepository.find({where : {startDate : task.startDate}})
             for (let existTask of taskList) {
                 await this.validateTask(existTask, task)
             }
@@ -58,7 +60,7 @@ export class TaskService{
     async updateTask(id: string, task: Task) {
         try {
             await this.validation.invalidId(id)
-            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.isRepeat, task.repeatDate, task.notifying])
+            await this.validation.checkInput([task.title, task.description, task.startDate, task.startTime, task.endTime, task.isRepeat, task.notifying])
             
             const taskList = await this.taskRepository.find(e => e.startDate == task.startDate && e._id != id)
             for (let existTask of taskList) {
@@ -102,4 +104,6 @@ export class TaskService{
             throw new Error(`Error checking done task: ${error.message}`);
         }
     }
+
+    //TODO: check validate task (no endTime)
 }
