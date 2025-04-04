@@ -27,7 +27,7 @@ export class UserController{
         try{
             const { email, password } = Request.body
             Promise.resolve(this.userService.login(email, password))
-            return Response.status(200).json({message: "Logged in"})
+            return Response.status(200).json({message: "Logged in"}, Request.headers.authorization.split(' ')[1])
         } catch (error) {
             return Response.status(400).json({message: error.message})
         }
@@ -35,15 +35,23 @@ export class UserController{
     }
 
     async updateUser(Request, Response, NextFunction){
-        const id = Request.params.id
-        const { name } = Request.body
-        return Promise.resolve(this.userService.update(id, name))
+        try{
+            const id = Request.params.id
+            const { name } = Request.body
+            return Promise.resolve(this.userService.update(id, name))
+        } catch (error) {
+            return Response.status(400).json({message: error.message})
+        }
     }
 
     async changePassword(Request, Response, NextFunction){
-        const id = Request.params.id
-        const { oldPassword , newPassword } = Request.body
-        return Promise.resolve(this.userService.changePassword(id, oldPassword, newPassword))
+        try{
+            const id = Request.params.id
+            const { oldPassword , newPassword } = Request.body
+            return Promise.resolve(this.userService.changePassword(id, oldPassword, newPassword))
+        } catch (error) {
+            return Response.status(400).json({message: error.message})
+        }
     }
 
     async logout(Request, Response, NextFunction){
