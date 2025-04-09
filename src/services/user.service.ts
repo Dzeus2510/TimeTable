@@ -43,13 +43,15 @@ export class UserService {
             }
             let jwtSecretKey = process.env.JWT_SECRET_KEY;
             const verified = jwt.verify(token, jwtSecretKey)
-            const redis = await redisToken.get(verified.id, token)
 
-            if (redis == null) {
-                return null
-            } else {
-                return verified
-            }
+            const userId = verified.id.toString();
+            const deviceTokens = await redisToken.sMembers(`user:${userId}:tokens`);
+
+            if (!deviceTokens || !deviceTokens.includes(token)) {
+                    return null;
+                } else {
+                    return verified;
+                    }
         }  catch (error) {
             throw new Error(`Error verifying token: ${error.message}`);
         }
@@ -58,13 +60,26 @@ export class UserService {
     private async generateToken(data): Promise<string> {
         try{
             let jwtSecretKey = process.env.JWT_SECRET_KEY;
-            const token = jwt.sign(data, jwtSecretKey)
-            const userid = data.id.toString()
+            const tokenData = {
+                ...data,
+                deviceId: Date.now().toString(), // Simple unique device identifier
+                at: Math.floor(Date.now() / 1000)
+                };
+            const token = jwt.sign(tokenData, jwtSecretKey)
+            const userId = data.id.toString()
 
-            await redisToken.set(userid, token)
+            await redisToken.sAdd(`user:${userId}:tokens`, token)
             return token
         }  catch (error) {
             throw new Error(`Error generating token: ${error.message}`);
+        }
+    }
+
+    async removeToken(userId: string, token: string): Promise<void> {
+        try{
+            await redisToken.sRem(`user:${userId}:tokens`, token);
+        }  catch (error) {
+            throw new Error(`Error removing token: ${error.message}`);
         }
     }
 
@@ -90,6 +105,24 @@ export class UserService {
             return await this.validation.findItem(user)
         } catch (error) {
             throw new Error(`Error getting user: ${error.message}`);
+        }
+    }
+
+    // Add a new method to get all user sessions
+    async getUserSessions(userId: string): Promise<string[]> {
+        try {
+            return await redisToken.sMembers(`user:${userId}:tokens`);
+        } catch (error) {
+            throw new Error(`Error getting user sessions: ${error.message}`);
+        }
+    }
+    
+    // Add a method to remove all sessions for a user
+    async removeAllTokens(userId: string): Promise<void> {
+        try {
+            await redisToken.del(`user:${userId}:tokens`);
+        } catch (error) {
+            throw new Error(`Error removing all tokens: ${error.message}`);
         }
     }
 
@@ -120,7 +153,14 @@ export class UserService {
             const token = await this.generateToken({id: user._id, email: user.email, name: user.name})
             console.log("Token: ", token)
 
-            return user + token
+            return {
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email
+                },
+                token
+            }
         } catch (error) {
             throw new Error(`Error logging in: ${error.message}`);
         }
@@ -156,14 +196,6 @@ export class UserService {
             return this.userRepository.update({_id: objUid}, { password })
         } catch (error) {
             throw new Error(`Error changing password: ${error.message}`);
-        }
-    }
-
-    async removeToken(userId: string): Promise<void> {
-        try{
-            await redisToken.del(userId);
-        }  catch (error) {
-            throw new Error(`Error removing token: ${error.message}`);
         }
     }
 

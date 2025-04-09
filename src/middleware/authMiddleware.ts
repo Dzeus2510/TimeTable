@@ -3,22 +3,27 @@ import { redisToken } from '../server';
 
 export const authMiddleware = async (Request, Response, NextFunction) => {
     try {
-        const token = Request.headers.authorization.split(' ')[1];
-        if (!token) {
-            return Response.status(401).json({ message: "Access Denied" });
+        const authHeader = Request.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return Response.status(401).json({ message: "Access Denied: No Token" });
         }
+
+        const token = authHeader.split(' ')[1];
 
         let jwtSecretKey = process.env.JWT_SECRET_KEY;
 
         const verified = jwt.verify(token, jwtSecretKey);
 
-        const redis = await redisToken.get(verified.id, token);
+        const userId = verified.id.toString();
+        const deviceTokens = await redisToken.sMembers(`user:${userId}:tokens`);
 
-        if (redis == null) {
-            return Response.status(401).json({ message: "Access Denied" });
-        } else {
-            NextFunction();
+        if (!deviceTokens || !deviceTokens.includes(token)) {
+            return Response.status(401).json({ message: "Access Denied: Invalid Token" });
         }
+
+        Request.user = verified;
+        NextFunction();
+        
     } catch (error) {
         return Response.status(401).json({ message: error.message });
     }
