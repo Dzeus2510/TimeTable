@@ -36,5 +36,15 @@ export const UserRoutes = [
         route: "/user/logout",
         controller: UserController,
         action: "logout"
+    },{
+        method: "get",
+        router: "/user/sessions/all",
+        controller: UserController,
+        action: "getUserSessions"
+    },{
+        method: "post",
+        route: "/user/logout/all",
+        controller: UserController,
+        action: "logoutAll"
     }
 ]
