@@ -38,7 +38,7 @@ export const UserRoutes = [
         action: "logout"
     },{
         method: "get",
-        router: "/user/sessions/all",
+        route: "/user/sessions/all",
         controller: UserController,
         action: "getUserSessions"
     },{
