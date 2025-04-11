@@ -19,11 +19,22 @@ export class TaskService{
         }
     }
 
+    async getUserTask(userId: string) {
+        try {
+            await this.validation.invalidId(userId)
+            const objUid = new ObjectId(userId)
+            const taskList = await this.taskRepository.find({ where: { userId: objUid } })
+            return await this.validation.findItem(taskList)
+        } catch (error) {
+            throw new Error(`Error getting user tasks: ${error.message}`);
+        }
+    }
+
     async getTask(id: string) {
         try {
             await this.validation.invalidId(id)
 
-            let objUid = new ObjectId(id)
+            const objUid = new ObjectId(id)
             const task = await this.taskRepository.findOne({ where: { _id: objUid } })
     
             return await this.validation.findItem(task)

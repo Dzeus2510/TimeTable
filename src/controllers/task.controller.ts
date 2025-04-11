@@ -10,6 +10,11 @@ export class TaskController{
         return this.taskService.getAllTask()
     }
 
+    async getUserTask(Request, Response, NextFunction) {
+        const token = Request.headers.authorization.split(' ')[1]
+        return this.taskService.getUserTask(token.userId)
+    }
+
     async getTask(Request, Response, NextFunction) {
         return this.taskService.getTask(Request.params.id)
     }
