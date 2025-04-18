@@ -44,9 +44,10 @@ export class TaskService{
     }
 
     async validateTask(existTask: Task, newTask: Task){
-        if (existTask.startTime <= newTask.startTime && newTask.startTime <= existTask.endTime ||
-            existTask.startTime <= newTask.endTime && newTask.endTime <= existTask.endTime ||
-            newTask.startTime <= existTask.startTime && existTask.endTime <= newTask.endTime) {
+        if (existTask.startTime <= newTask.startTime && newTask.startTime < existTask.endTime ||
+            existTask.startTime < newTask.endTime && newTask.endTime <= existTask.endTime ||
+            newTask.startTime <= existTask.startTime && existTask.endTime <= newTask.endTime ||
+            existTask.startTime <= newTask.startTime && newTask.endTime <= existTask.endTime) {
             throw new Error("There's already a task: " + existTask.title + " on " + existTask.startTime + " - " + existTask.endTime)
         }
         if ( newTask.startTime >= newTask.endTime) {
